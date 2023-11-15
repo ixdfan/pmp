@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<link>
+<style>
+    .search {
+        display: flex;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background-color: bisque;
+        height: 40px;
+        line-height: 40px;
+    }
+
+    body {
+        padding-top: 40px;
+    }
+
+    #questionContainer {
+        overflow-y: scroll;
+    }
+
+    input {
+        margin-right: 10px
+    }
+</style>
+</link>
+
+<body>
+    <div class="search">
+        <input type="text">
+        <label for="" id="search">搜索</label>
+    </div>
+    <div id="questionContainer"></div>
+    <script src="zepto.js"></script>
+    <script src="data.js"></script>
+    <script src="data1.js"></script>
+    <script>
+        let questionList = window.data.data.list;
+
+        for (let index = 1; index < 12; index++) {
+            questionList = questionList.concat(window['data' + index].data.list)
+        }
+
+
+        function render(questionList) {
+            $("#search").text("搜索结果数量=" + questionList.length)
+            const questionContainer = document.getElementById('questionContainer');
+            let questionHTML = "";
+            questionList.forEach(questionData => {
+                // Create question content element
+                questionHTML += `
+            <div>${questionData.content}</div>
+            `;
+
+                // Create options elements
+                questionData.option.forEach((option) => {
+                    questionHTML += `
+                <div style="display:flex">
+                    <input type="radio" name="answer" value="${option.id}">
+                    <label>${option.content}</label>
+                </div>
+                `;
+                });
+
+                questionHTML += `<div data-question='${JSON.stringify(questionData).replace(/</g, "&lt;").replace(/>/g, "&gt;")}' class="anwser">展开解析</div>`
+            })
+            $("#questionContainer").html(questionHTML);
+        }
+
+        render(questionList);
+
+        $(document).on('click', '.anwser', function (e) {
+            let question = $(e.target).data("question");
+            let anwser = "";
+            const anwserMap = {
+                0: "A",
+                1: "B",
+                2: "C",
+                3: "D"
+            }
+            question.correct_answer.forEach(i => {
+                question.option.forEach((option, index) => {
+                    if (i === option.id) {
+                        anwser += anwserMap[index];
+                    }
+                })
+            })
+            $(`
+            <div>答案 ${anwser}</div>
+            <div>${question.analysis}</div>
+            `).insertAfter($(e.target))
+            console.log(question)
+        }).on("click", "#search", e => {
+            let value = $("input").val();
+            let questionListSearch = questionList.filter(i => JSON.stringify(i).includes(value));
+            render(questionListSearch);
+        }).on("keydown", "input", e => {
+            if (e.keyCode === 13) {
+                let value = $("input").val();
+                let questionListSearch = questionList.filter(i => JSON.stringify(i).includes(value));
+                render(questionListSearch);
+            }
+        });
+
+
+
+    </script>
+</body>
+
+</html>
